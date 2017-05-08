@@ -198,9 +198,9 @@ local cdecl_mz_t = [[
 local ffi = require 'ffi'
 
 local extname = (ffi.os == 'OSX' and 'dylib' or 'so')
-local ver  = '.' .. '1.1'
-local path = ('./libminizip%s.%s'):format(ver, extname)
-path = package.searchpath('minizip', package.cpath) or path
+local modname = 'libminizip_1_1'
+local path = ('./%s.%s'):format(modname, extname)
+path = package.searchpath(modname, package.cpath) or path
 
 ffi.cdef(cdecl_headers)
 ffi.cdef(cdecl_mz_t, 'zip_s', ffi.typeof('int8_t'), 'comp_level', 'zip_t')
