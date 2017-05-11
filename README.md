@@ -9,4 +9,10 @@ minizip 的 LuaJIT FFI 绑定，只实现了 mem 模块。Linux | MACOSX, minizi
 5. 测试 zip ，生成 zip.zip 文件：`luajit test_zip.lua`。
 6. 测试 unzip ，显示 zip.zip 的信息、内容：`luajit test_unzip.lua`。
 
-
+### 构建 master 版
+1. `git clone https://github.com/nmoinvaz/minizip.git`
+2. `cp [minizip.git_CMakeLists.txt](minizip.git_CMakeLists.txt) minizip/CMakeLists.txt`
+3. `cd minizip; cmake .; make`
+4. `mv libminizip.dylib <LUA_PATH>/libminizip_dev.dylib`
+5. `luajit test_zip.lua`
+6. `luajit test_unzip.lua`
