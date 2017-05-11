@@ -58,33 +58,33 @@ local cdecl_headers = [[
 
     char *ctime(const time_t *clock); // 符合dos_date格式
 
-    typedef unsigned int   uInt;  /* 16 bits or more */
-    typedef unsigned long  uLong; /* 32 bits or more */
-    typedef long z_off_t;
-
-    // XXX 调整了字段名（去掉前缀tm_），与os.date('*t')一致，便于直接初始化
-    /* tm_zip contain date/time info */
-    typedef struct tm_zip_s
+    // XXX 调整了字段名（去掉前缀tm_），与os.date('*t')一致
+    //      day: mday, month: mon.
+    struct tm
     {
-        uInt sec;                /* seconds after the minute - [0,59] */
-        uInt min;                /* minutes after the hour - [0,59] */
-        uInt hour;               /* hours since midnight - [0,23] */
-        uInt day;                /* day of the month - [1,31] */
-        uInt month;              /* months since January - [0,11] */
-        uInt year;               /* years - [1980..2044] */
-    } tm_zip;
+        int sec;        /* Seconds. [0-60] (1 leap second) */
+        int min;        /* Minutes. [0-59] */
+        int hour;       /* Hours.   [0-23] */
+        int day;        /* Day.     [1-31] */
+        int month;      /* Month.   [0-11] */
+        int year;       /* Year - 1900.  */
+        int wday;       /* Day of week. [0-6] */
+        int yday;       /* Days in year.[0-365] */
+        int isdst;      /* DST.     [-1/0/1]*/
 
-    typedef struct tm_zip_s tm_unz;
+        long int gmtoff;        /* Seconds east of UTC.  */
+        __const char *zone;     /* Timezone abbreviation.  */
+    };
 
-    typedef voidpf   (*open_file_func)      (voidpf opaque, const char* filename, int mode);
-    typedef voidpf   (*opendisk_file_func)  (voidpf opaque, voidpf stream, unsigned long number_disk, int mode);
-    typedef uLong    (*read_file_func)      (voidpf opaque, voidpf stream, void* buf, uLong size);
-    typedef uLong    (*write_file_func)     (voidpf opaque, voidpf stream, const void* buf, uLong size);
-    typedef int      (*close_file_func)     (voidpf opaque, voidpf stream);
-    typedef int      (*testerror_file_func) (voidpf opaque, voidpf stream);
+    typedef voidpf   (*open_file_func)     (voidpf opaque, const char *filename, int mode);
+    typedef voidpf   (*opendisk_file_func) (voidpf opaque, voidpf stream, uint32_t number_disk, int mode);
+    typedef uint32_t (*read_file_func)     (voidpf opaque, voidpf stream, void* buf, uint32_t size);
+    typedef uint32_t (*write_file_func)    (voidpf opaque, voidpf stream, const void *buf, uint32_t size);
+    typedef int      (*close_file_func)    (voidpf opaque, voidpf stream);
+    typedef int      (*error_file_func)    (voidpf opaque, voidpf stream);
 
-    typedef long     (*tell_file_func)      (voidpf opaque, voidpf stream);
-    typedef long     (*seek_file_func)      (voidpf opaque, voidpf stream, uLong offset, int origin);
+    typedef long     (*tell_file_func)     (voidpf opaque, voidpf stream);
+    typedef long     (*seek_file_func)     (voidpf opaque, voidpf stream, uint32_t offset, int origin);
 
     /* here is the "old" 32 bits structure structure */
     typedef struct zlib_filefunc_def_s
@@ -96,77 +96,75 @@ local cdecl_headers = [[
         tell_file_func      ztell_file;
         seek_file_func      zseek_file;
         close_file_func     zclose_file;
-        testerror_file_func zerror_file;
+        error_file_func     zerror_file;
         voidpf              opaque;
     } zlib_filefunc_def;
 
     typedef struct ourmemory_s {
-        char *base;       /* Base of the region of memory we're using */
-        uLong size;       /* Size of the region of memory we're using */
-        uLong limit;      /* Furthest we've written */
-        uLong cur_offset; /* Current offset in the area */
-        int grow;         /* Growable memory buffer */
+        char *base;          /* Base of the region of memory we're using */
+        uint32_t size;       /* Size of the region of memory we're using */
+        uint32_t limit;      /* Furthest we've written */
+        uint32_t cur_offset; /* Current offset in the area */
+        int grow;            /* Growable memory buffer */
     } ourmemory_t;
 
     typedef struct
     {
-        tm_zip      tmz_date;       /* date in understandable format           */
-        uLong       dosDate;        /* if dos_date == 0, tmu_date is used      */
-        uLong       internal_fa;    /* internal file attributes        2 bytes */
-        uLong       external_fa;    /* external file attributes        4 bytes */
+        uint32_t    dos_date;
+        uint16_t    internal_fa;        /* internal file attributes        2 bytes */
+        uint32_t    external_fa;        /* external file attributes        4 bytes */
     } zip_fileinfo;
 
     typedef struct unz_file_info_s
     {
-        uLong version;              /* version made by                 2 bytes */
-        uLong version_needed;       /* version needed to extract       2 bytes */
-        uLong flag;                 /* general purpose bit flag        2 bytes */
-        uLong compression_method;   /* compression method              2 bytes */
-        uLong dosDate;              /* last mod file date in Dos fmt   4 bytes */
-        uLong crc;                  /* crc-32                          4 bytes */
-        uLong compressed_size;      /* compressed size                 4 bytes */
-        uLong uncompressed_size;    /* uncompressed size               4 bytes */
-        uLong size_filename;        /* filename length                 2 bytes */
-        uLong size_file_extra;      /* extra field length              2 bytes */
-        uLong size_file_comment;    /* file comment length             2 bytes */
+        uint16_t version;               /* version made by                 2 bytes */
+        uint16_t version_needed;        /* version needed to extract       2 bytes */
+        uint16_t flag;                  /* general purpose bit flag        2 bytes */
+        uint16_t compression_method;    /* compression method              2 bytes */
+        uint32_t dos_date;              /* last mod file date in Dos fmt   4 bytes */
+        uint32_t crc;                   /* crc-32                          4 bytes */
+        uint32_t compressed_size;       /* compressed size                 4 bytes */
+        uint32_t uncompressed_size;     /* uncompressed size               4 bytes */
+        uint16_t size_filename;         /* filename length                 2 bytes */
+        uint16_t size_file_extra;       /* extra field length              2 bytes */
+        uint16_t size_file_comment;     /* file comment length             2 bytes */
 
-        uLong disk_num_start;       /* disk number start               2 bytes */
-        uLong internal_fa;          /* internal file attributes        2 bytes */
-        uLong external_fa;          /* external file attributes        4 bytes */
+        uint16_t disk_num_start;        /* disk number start               2 bytes */
+        uint16_t internal_fa;           /* internal file attributes        2 bytes */
+        uint32_t external_fa;           /* external file attributes        4 bytes */
 
-        tm_unz tmu_date;
-        uLong disk_offset;
+        uint64_t disk_offset;
     } unz_file_info;
 
     /* unz_global_info structure contain global data about the ZIPfile
        These data comes from the end of central dir */
     typedef struct unz_global_info_s
     {
-        uLong number_entry;         /* total number of entries in the central dir on this disk */
-        uLong number_disk_with_CD;  /* number the the disk with central dir, used for spanning ZIP*/
-        uLong size_comment;         /* size of the global comment of the zipfile */
+        uint32_t number_entry;          /* total number of entries in the central dir on this disk */
+        uint32_t number_disk_with_CD;   /* number the the disk with central dir, used for spanning ZIP*/
+        uint16_t size_comment;          /* size of the global comment of the zipfile */
     } unz_global_info;
 
     typedef struct unz_file_pos_s
     {
-        uLong pos_in_zip_directory;     /* offset in zip file directory */
-        uLong num_of_file;              /* # of file */
+        uint32_t pos_in_zip_directory;  /* offset in zip file directory */
+        uint32_t num_of_file;           /* # of file */
     } unz_file_pos;
 
     typedef int (*unzFileNameComparer)(unzFile file, const char *filename1, const char *filename2);
 
     void fill_memory_filefunc(zlib_filefunc_def* pzlib_filefunc_def, ourmemory_t *ourmem);
 
-    extern zipFile  zipOpen2(const char *pathname, int append, const char ** globalcomment,
-        zlib_filefunc_def* pzlib_filefunc_def);
-    extern int      zipClose(zipFile file, const char* global_comment);
-    extern int      zipOpenNewFileInZip(zipFile file, const char* filename, const zip_fileinfo* zipfi,
-        const void* extrafield_local, uInt size_extrafield_local, const void* extrafield_global,
-        uInt size_extrafield_global, const char* comment, int method, int level);
+    extern zipFile  zipOpen2(const char *path, int append, const char **globalcomment,
+        zlib_filefunc_def *pzlib_filefunc_def);
+    extern int      zipClose(zipFile file, const char *global_comment);
+    extern int      zipOpenNewFileInZip(zipFile file, const char *filename, const zip_fileinfo *zipfi,
+        const void *extrafield_local, uint16_t size_extrafield_local, const void *extrafield_global,
+        uint16_t size_extrafield_global, const char *comment, uint16_t method, int level);
     extern int      zipCloseFileInZip(zipFile file);
-    extern int      zipWriteInFileInZip(zipFile file, const void* buf, unsigned len);
+    extern int      zipWriteInFileInZip(zipFile file, const void *buf, uint32_t len);
 
-    extern unzFile  unzOpen2(const char *path, zlib_filefunc_def* pzlib_filefunc_def);
+    extern unzFile  unzOpen2(const char *path, zlib_filefunc_def *pzlib_filefunc_def);
     extern int      unzClose(unzFile file);
     extern int      unzOpenCurrentFile(unzFile file);
     extern int      unzCloseCurrentFile(unzFile file);
@@ -174,14 +172,22 @@ local cdecl_headers = [[
     extern int      unzGoToNextFile(unzFile file);
     extern int      unzLocateFile(unzFile file, const char *filename, unzFileNameComparer filename_compare_func);
     extern int      unzGetCurrentFileInfo(unzFile file, unz_file_info *pfile_info, char *filename,
-        uLong filename_size, void *extrafield, uLong extrafield_size, char *comment, uLong comment_size);
+        uint16_t filename_size, void *extrafield, uint16_t extrafield_size, char *comment, uint16_t comment_size);
     extern int      unzGetGlobalInfo(unzFile file, unz_global_info *pglobal_info);
-    extern int      unzGetGlobalComment(unzFile file, char *comment, uLong comment_size);
-    extern uLong    unzGetOffset(unzFile file);
-    extern int      unzGetFilePos(unzFile file, unz_file_pos* file_pos);
-    extern int      unzReadCurrentFile(unzFile file, voidp buf, unsigned len);
-    extern z_off_t  unztell(unzFile file);
-    extern int      unzeof(unzFile file);
+    extern int      unzGetGlobalComment(unzFile file, char *comment, uint16_t comment_size);
+    extern int32_t  unzGetOffset(unzFile file);
+    extern int      unzGetFilePos(unzFile file, unz_file_pos *file_pos);
+    extern int      unzReadCurrentFile(unzFile file, voidp buf, uint32_t len);
+    extern int32_t  unzTell(unzFile file);
+
+    struct tm *localtime_r(const time_t *clock, struct tm *result);
+    time_t mktime(struct tm *timeptr);
+
+    /* Convert struct tm to dos date/time format */
+    uint32_t tm_to_dosdate(const struct tm *ptm);
+
+    /* Convert dos date/time format to struct tm */
+    int dosdate_to_tm(uint64_t dos_date, struct tm *ptm);
 ]]
 
 local cdecl_mz_t = [[
@@ -275,44 +281,17 @@ setfenv(1, {})
 
 
 -- @param cdata.zip_fileinfo zi
+--      XXX 该结构与旧版不同，因此实现较C模块版简单
 -- @param number|table       ts_or_date 时间戳或日期table
 local function set_file_time(zi, ts_or_date)
-    local date = ts_or_date
-    if type(ts_or_date) ~= 'table' then
-        date = os_date('*t', tonumber(ts_or_date))
-    end
+    local ts, tm
 
-    date = date or os_date('*t')
+    ts = tonumber(ts_or_date) or os_time(ts_or_date) or os_time()
+    ts = ffi.new('const time_t[1]', ts)
+    tm = ffi.new('struct tm[1]')
+    C.localtime_r(ts, tm)
 
-    -- date.month = date.month - 1
-    -- ffi.copy(zi.tmz_date, ffi.new('tm_zip', date), ffi.sizeof('tm_zip'))
-    -- zi.tmz_date = ffi.new('tm_zip', date) -- XXX tmz_date 不是指针，因此这里==copy
-    zi.tmz_date.year  = date.year
-    zi.tmz_date.month = date.month - 1
-    zi.tmz_date.day   = date.day
-    zi.tmz_date.hour  = date.hour
-    zi.tmz_date.min   = date.min
-    zi.tmz_date.sec   = date.sec
-    zi.dosDate        = 0
-end
-
--- from minizip/minishared.c::dosdate_to_tm
--- Convert dos date/time format to timestamp
--- @param number dos_date
--- @return int
-local function dosdate_to_time(dos_date)
-    dos_date = tonumber(dos_date) -- LuaJIT v2.0: cdata.整数 不能直接运算
-    local date = rshift(dos_date, 16)
-
-    local d = {
-        year  = band(date, 0x0FE00) / 0x0200 + 1980,
-        month = band(date, 0x1E0) / 0x20,
-        day   = band(date, 0x1f),
-        hour  = band(dos_date, 0xF800) / 0x800,
-        min   = band(dos_date, 0x7E0) / 0x20,
-        sec   = band(dos_date, 0x1f) * 2,
-    }
-    return os_time(d), d
+    zi.dos_date = MZ.tm_to_dosdate(tm)
 end
 
 -- @param cdata.unz_file_info file_info
@@ -321,13 +300,23 @@ end
 local function get_file_time(file_info)
     local mtime, dos_date
 
-    -- dos_date = dosdate_to_time(file_info.dosDate)
+    local tm = ffi.new('struct tm')
+    if MZ.dosdate_to_tm(file_info.dos_date, tm) < 0 then
+        throw('Invalid dos_date')
+    end
+
+    --[[
+    tm.year  = tm.year - 1900
+    dos_date = tonumber(C.mktime(tm))
+    tm.year  = tm.year + 1900
+    -- XXX 时区缩写： ffi.string(tm.zone)
+    -- XXX 时区偏移（秒）： tm.gmtoff
+    --]]
 
     -- mtime    = os_date('%Y-%m-%d %H:%M:%S', dos_date)
-    -- dos_date = ffi.string(C.ctime(ffi.new('uLong[1]', dos_date)))
+    -- dos_date = ffi.string(C.ctime(ffi.new('uint64_t[1]', dos_date)))
     -- dos_date = os_date('%a %b %d %H:%M:%S %Y\n', dos_date)
 
-    local tm = file_info.tmu_date
     mtime = format('%u-%02u-%02u %02u:%02u:%02u',
         tm.year,
         tm.month + 1,
@@ -338,6 +327,7 @@ local function get_file_time(file_info)
 
     return mtime, dos_date
 end
+
 
 local function normalize_comp_level(level)
     if level ~= MZ.Z_DEFAULT_COMPRESSION and level ~= MZ.Z_NO_COMPRESSION then
@@ -941,8 +931,7 @@ local function m_file_extract_unzip(z, filepath, buf_size)
 
     repeat
         -- XXX unzOpenCurrentFile 后调用有效，出错则返回值<0
-        -- print(format('tell: %d, eof: %d\n',
-            -- tonumber(MZ.unztell(z.zf)), tonumber(MZ.unzeof(z.zf))))
+        -- print(format('tell: %d\n', tonumber(MZ.unzTell(z.zf))))
         err = MZ.unzReadCurrentFile(z.zf, buf, buf_size)
         if err <= 0 then -- 0: eof
             break

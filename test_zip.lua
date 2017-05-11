@@ -86,3 +86,5 @@ f:write(stream)
 f:close()
 print()
 
+print('version:', mz.version)
+print()

@@ -98,3 +98,5 @@ print()
 print('close:', uf:close(), uf)
 print()
 
+print('version:', mz.version)
+print()
