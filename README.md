@@ -1,7 +1,7 @@
 # lua-minizip
 minizip 的 LuaJIT FFI 绑定，只实现了 mem 模块。Linux | MACOSX, minizip v1.1 + LuaJIT v2。
 
-### 构建
+### 构建 v1.1 版
 1. 下载 [minizip v1.1](https://github.com/nmoinvaz/minizip/releases/tag/1.1) 源码包，解压。
 2. 用 [minizip-1.1_CMakeLists.txt](minizip-1.1_CMakeLists.txt) 覆盖其中的 CMakeLists.txt 。会构建测试用的可执行文件、共享库、链接 bzip2 库、链接 compression 库（MACOSX）。
 3. 进入源码目录，构建 minizip 共享库：`cmake .; make`。
@@ -11,7 +11,7 @@ minizip 的 LuaJIT FFI 绑定，只实现了 mem 模块。Linux | MACOSX, minizi
 
 ### 构建 master 版
 1. `git clone https://github.com/nmoinvaz/minizip.git`
-2. `cp [minizip.git_CMakeLists.txt](minizip.git_CMakeLists.txt) minizip/CMakeLists.txt`
+2. `cp minizip.git_CMakeLists.txt minizip/CMakeLists.txt`
 3. `cd minizip; cmake .; make`
 4. `mv libminizip.dylib <LUA_PATH>/libminizip_dev.dylib`
 5. `luajit test_zip.lua`
