@@ -13,6 +13,6 @@ minizip 的 LuaJIT FFI 绑定，只实现了 mem 模块。Linux | MACOSX, minizi
 1. `git clone https://github.com/nmoinvaz/minizip.git`
 2. `cp minizip.git_CMakeLists.txt minizip/CMakeLists.txt`
 3. `cd minizip; cmake .; make`
-4. `mv libminizip.dylib <LUA_PATH>/libminizip_dev.dylib`
+4. `mv libminizip.<SO_EXT> <LUA_PATH>/libminizip_dev.<SO_EXT>`
 5. `luajit test_zip.lua`
 6. `luajit test_unzip.lua`
