@@ -480,18 +480,20 @@ local function m_file_archive_zip(z, filepath, opts, content)
         throw('invalid filepath')
     end
 
-    local comment
     local comp_level = z.comp_level
+    local comment
+    local date
 
     if opts then
         comp_level = tonumber(opts.comp_level) or comp_level
         comp_level = normalize_comp_level(comp_level)
 
         comment = opts.comment
+        date    = opts.date
     end
 
     local zi = ffi.new('zip_fileinfo')
-    set_file_time(zi, opts.date)
+    set_file_time(zi, date)
     -- zi.internal_fa = 0
     -- zi.external_fa = 0
 
